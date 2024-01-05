@@ -16,9 +16,3 @@ def pascal_triangle(n):
         triangle.append(row)
 
     return triangle
-
-
-if __name__ == "__main__":
-    triangle = pascal_triangle(5)
-    for row in triangle:
-        print("[{}]".format(",".join(map(str, row))))
