@@ -1,7 +1,9 @@
 #!/usr/bin/python3
+""" Write a method that determines if all the boxes can be opened """
 
 
 def canUnlockAll(boxes):
+    """ CAN UNLOCK ALL BOXES """
     seen_boxes = {0}
     unseen_boxes = set(boxes[0])
 
