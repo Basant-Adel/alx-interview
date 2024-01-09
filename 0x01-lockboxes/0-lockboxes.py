@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+
 def canUnlockAll(boxes):
     seen_boxes = {0}
     unseen_boxes = set(boxes[0])
