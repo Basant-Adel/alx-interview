@@ -1,55 +1,70 @@
 #!/usr/bin/python3
 """Log parsing"""
-import sys
+import re
 
 
-def print_statistics(total_size, status_code_count):
-    """Print Statistics"""
-    print(f"File size: {total_size}")
-    for code, count in sorted(status_code_count.items()):
-        print(f"{code}: {count}")
+def extract_input(input_line):
+    """extract"""
+    pattern = (
+        r'\s*(?P<ip>\S+)\s*',
+        r'\s*\[(?P<date>\d+\-\d+\-\d+ \d+:\d+:\d+\.\d+)\]',
+        r'\s*"(?P<request>[^"]*)"\s*',
+        r'\s*(?P<status_code>\S+)',
+        r'\s*(?P<file_size>\d+)'
+    )
+    info = {'status_code': 0, 'file_size': 0}
+    log_format = '{}\\-{}{}{}{}\\s*'.format(*pattern)
+    match = re.fullmatch(log_format, input_line)
+    if match:
+        info['status_code'] = match.group('status_code')
+        info['file_size'] = int(match.group('file_size'))
+    return info
 
 
-def parse_line(line):
-    """Parse Line"""
+def print_statistics(total_file_size, status_codes_stats):
+    """print"""
+    print(f'File size: {total_file_size}', flush=True)
+    for status_code, num in sorted(status_codes_stats.items()):
+        if num > 0:
+            print(f'{status_code}: {num}', flush=True)
+
+
+def update_metrics(line, total_file_size, status_codes_stats):
+    """update"""
+    line_info = extract_input(line)
+    status_code = line_info.get('status_code', '0')
+    status_codes_stats[status_code] += 1
+    return total_file_size + line_info['file_size']
+
+
+def run():
+    """run"""
+    line_num = 0
+    total_file_size = 0
+    status_codes_stats = {str(code): 0 for code in [
+        200,
+        301,
+        400,
+        401,
+        403,
+        404,
+        405,
+        500
+        ]}
     try:
-        parts = line.split()
-        ip_address, date, method, path, http_version, status_code, file_size = (
-            parts[0],
-            parts[3][1:],
-            parts[5][1:],
-            parts[6],
-            parts[7],
-            int(parts[8]),
-            int(parts[9])
-        )
-        return ip_address, date, method, path, http_version, status_code, file_size
-    except (IndexError, ValueError):
-        return None
+        while True:
+            line = input()
+            total_file_size = update_metrics(
+                    line,
+                    total_file_size,
+                    status_codes_stats
+                    )
+            line_num += 1
+            if line_num % 10 == 0:
+                print_statistics(total_file_size, status_codes_stats)
+    except (KeyboardInterrupt, EOFError):
+        print_statistics(total_file_size, status_codes_stats)
 
 
-def main():
-    """Main"""
-    total_size = 0
-    status_code_count = {}
-    lines_processed = 0
-
-    try:
-        for line in sys.stdin:
-            data = parse_line(line.strip())
-            if data:
-                ip_address, date, method, path, http_version, status_code, file_size = data
-                total_size += file_size
-                status_code_count[status_code] = status_code_count.get(status_code, 0) + 1
-
-                lines_processed += 1
-                if lines_processed % 10 == 0:
-                    print_statistics(total_size, status_code_count)
-
-    except KeyboardInterrupt:
-        print_statistics(total_size, status_code_count)
-        sys.exit(0)
-
-
-if __name__ == "__main__":
-    main()
+if __name__ == '__main__':
+    run()
