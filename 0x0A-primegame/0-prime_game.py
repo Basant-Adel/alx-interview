@@ -4,46 +4,21 @@
 
 def isWinner(x, nums):
     """ Maria and Ben are playing a game """
-
-    def is_prime(num):
-        """ Maria and Ben are playing a game """
-        if num < 2:
-            return False
-        for i in range(2, int(num**0.5) + 1):
-            if num % i == 0:
-                return False
-        return True
-
-    def get_primes(n):
-        """ Maria and Ben are playing a game """
-        primes = []
-        for i in range(2, n + 1):
-            if is_prime(i):
-                primes.append(i)
-        return primes
-
-    def can_win(primes, n):
-        """ Maria and Ben are playing a game """
-        if n % 2 == 0:
-            return "Maria"
-        else:
-            return "Ben"
-
-    wins = {"Maria": 0, "Ben": 0}
-
-    for i in range(x):
-        n = nums[i]
-        primes = get_primes(n)
-        winner = can_win(primes, n)
-        wins[winner] += 1
-
-    if wins["Maria"] > wins["Ben"]:
-        return "Maria"
-    elif wins["Maria"] < wins["Ben"]:
-        return "Ben"
-    else:
+    if x < 1 or not nums:
         return None
-
-
-if __name__ == "__main__":
-    print("Winner: {}".format(isWinner(5, [2, 5, 1, 4, 3])))
+    marias_wins, bens_wins = 0, 0
+    n = max(nums)
+    primes = [True for _ in range(1, n + 1, 1)]
+    primes[0] = False
+    for i, is_prime in enumerate(primes, 1):
+        if i == 1 or not is_prime:
+            continue
+        for j in range(i + i, n + 1, i):
+            primes[j - 1] = False
+    for _, n in zip(range(x), nums):
+        primes_count = len(list(filter(lambda x: x, primes[0: n])))
+        bens_wins += primes_count % 2 == 0
+        marias_wins += primes_count % 2 == 1
+    if marias_wins == bens_wins:
+        return None
+    return 'Maria' if marias_wins > bens_wins else 'Ben'
